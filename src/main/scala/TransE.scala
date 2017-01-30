@@ -3,6 +3,7 @@
   */
 import org.apache.spark.{SparkConf, SparkContext}
 import scala.collection.mutable.Map
+
 object TransE {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
@@ -33,8 +34,11 @@ object TransE {
     RelationAndId.map{tuple => relation2id(tuple._1) = tuple._2
       id2relation(tuple._2)=tuple._1
     }
+    val entity_num = EntityAndId.length
+    val relation_num = RelationAndId.length
 
-
+    val f3 = sc.textFile("/Users/zhangdenghui/TransE/FB15k/train.txt")
+    
 
 
 
