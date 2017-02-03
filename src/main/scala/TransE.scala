@@ -101,7 +101,7 @@ object TransE {
 
   def vec_len(a: Array[Double]): Double = {
     var res = 0.0
-    a.foreach(res+=_)
+    a.foreach(x=>res+= x*x )
     res = math.sqrt(res)
     res
   }
