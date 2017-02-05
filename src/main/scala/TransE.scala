@@ -202,7 +202,7 @@ object TransE {
         val bcEntity_vec = sc.broadcast(entity_vec)
 
         var sampledRDD = samplesRDD
-          .sample(withReplacement = false, batchsize/train_num.toDouble, System.currentTimeMillis())
+          .sample(withReplacement = true, batchsize/train_num.toDouble, System.currentTimeMillis())
 
         val vecRDD = sampledRDD.mapPartitions{
           iter =>
@@ -302,7 +302,7 @@ object TransE {
     random.setSeed(System.currentTimeMillis())
 
     nepoch = 1000
-    nbatches = 100
+    nbatches = 2
     batchsize = train_num / nbatches
     start = System.currentTimeMillis()
     train(vecLen,rate,margin,method,sc)
