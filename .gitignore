@@ -1,3 +1,6 @@
 target
 project
 .idea
+/relation2vec.
+/entity2vec.
+/out/

@@ -1,7 +1,10 @@
 /**
   * Created by zhangdenghui on 17/1/30.
   */
-import org.apache.spark.{SparkConf, SparkContext,Accumulator}
+import java.io.PrintWriter
+
+import org.apache.spark.{Accumulator, SparkConf, SparkContext}
+
 import scala.collection.mutable.{ArrayBuffer, Map}
 
 object TransE {
@@ -191,7 +194,8 @@ object TransE {
 
   def sgd(sc:SparkContext): Unit = {
 
-    val samplesRDD = sc.parallelize(samples,4).persist()
+    val samplesRDD = sc.parallelize(samples).persist()
+
     val bcOK = sc.broadcast(ok)
     for(epoch <- 0 until nepoch){
       res = 0
@@ -203,6 +207,7 @@ object TransE {
 
         var sampledRDD = samplesRDD
           .sample(withReplacement = true, batchsize/train_num.toDouble, System.currentTimeMillis())
+        println("num partition:"+sampledRDD.getNumPartitions)
 
         val vecRDD = sampledRDD.mapPartitions{
           iter =>
@@ -260,6 +265,29 @@ object TransE {
       var end = System.currentTimeMillis()
       println("epoch"+epoch+"  res:"+ac_res.value)
       println("epoch"+epoch+" cost time:"+(end-start)/1000.0)
+
+      val out = new PrintWriter("relation2vec."+version)
+      val out2 = new PrintWriter("entity2vec."+version)
+      relation_vec.foreach{
+        a =>
+          a.foreach{
+            x=>
+              out.print(x)
+              out.print("\t")
+          }
+          out.println()
+      }
+      entity_vec.foreach{
+        a =>
+          a.foreach{
+            x=>
+              out2.print(x)
+              out2.print("\t")
+          }
+          out2.println()
+      }
+      out.close()
+      out2.close()
     }
   }
 
@@ -271,11 +299,13 @@ object TransE {
     val conf = new SparkConf()
       .setAppName(s"TransE-Spark")
       .set("spark.hadoop.validateOutputSpecs", "false")
-      .setMaster("local[4]")
+      .setMaster("local[16]")
 
     val sc = new SparkContext(conf)
-    val f1 = sc.textFile("/Users/zhangdenghui/TransE/FB15k/entity2id.txt")
-    val f2 = sc.textFile("/Users/zhangdenghui/TransE/FB15k/relation2id.txt")
+//    val f1 = sc.textFile("/Users/zhangdenghui/TransE/FB15k/entity2id.txt")
+//    val f2 = sc.textFile("/Users/zhangdenghui/TransE/FB15k/relation2id.txt")
+    val f1 = sc.textFile("./FB15k/entity2id.txt")
+    val f2 = sc.textFile("./FB15k/relation2id.txt")
     val EntityAndId = f1.map{
       line =>
       val re = line.split("\t")
@@ -285,7 +315,8 @@ object TransE {
       val re = line.split("\t")
       (re(0),re(1).toInt) }.collect()
 
-    val f3 = sc.textFile("/Users/zhangdenghui/TransE/FB15k/train.txt")
+//    val f3 = sc.textFile("/Users/zhangdenghui/TransE/FB15k/train.txt")
+    val f3 = sc.textFile("./FB15k/train.txt")
     val Traindata = f3.map{
       line =>
       val re = line.split("\t")
@@ -296,10 +327,15 @@ object TransE {
     println("prepare time:"+(end-start)/1000.0)
 
     var vecLen :Int = 100
-    var method :Int = 1
+    var method :Int = 0
     var rate :Double = 0.001
     var margin : Int = 1
     random.setSeed(System.currentTimeMillis())
+
+    if (method==1)
+      version = "bern";
+    else
+      version = "unif";
 
     nepoch = 1000
     nbatches = 2
