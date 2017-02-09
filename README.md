@@ -30,5 +30,6 @@ FB15k,nepoch=1000, veclen=100
 
 | Model      |     MeanRank(Raw) |   MeanRank(Filter)   |	Hit@10(Raw)	| Hit@10(Filter)| Time(s)|
 | :-------- | --------:| :------: | :------: |:------: |:------: |
+| Parallel-TransE(12 thread) |    220 | 71.6 |  48.4 | 73.3| 829 |
 | TransE-Spark(16 thread) |    218.7 | 78.1 |  46.5 | 69.6| 3300 |
 | TransE-THU  |    205 |  63 |  47.9 | 70.2 | 10361 |
